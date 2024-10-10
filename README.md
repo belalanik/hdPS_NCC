@@ -1,1 +1,1 @@
-# hdPS_NCC
+# Simultaneously dealing with immortal time bias and residual confounding: A case study of a high‐dimensional propensity score approach with a nested case-control framework in multiple sclerosis research
