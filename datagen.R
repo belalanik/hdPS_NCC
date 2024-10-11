@@ -2,8 +2,6 @@ library(survival)
 library(tableone)
 rm(list = ls())
 
-setwd("C:/Users/owner/Google Drive/Academic/UBC/Research/0. RA work/0. MS - hdPS/Analysis - paper 2/")
-
 ############################## Event rate 16%, exposure 22% ##################################
 #The sample size
 n <- 19000
