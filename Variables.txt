@@ -1,0 +1,10 @@
+id: Unique identifier
+follow_up: Follow-up time in years
+mortality_outcome: Binary outcome
+age: Age in years
+sex: Sex
+ses: Socioeconomic status
+cci: Charlson Comorbidity Index
+year: Calendar year
+anyDMD: Time-dependent exposure
+yrs_anyDMD: Exposure time in years
