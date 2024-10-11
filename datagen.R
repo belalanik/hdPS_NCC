@@ -2,7 +2,7 @@ library(survival)
 library(tableone)
 rm(list = ls())
 
-############################## Event rate 16%, exposure 22% ##################################
+############# Generating a time-to-event outcome with a time-dependent exposure #############
 #The sample size
 n <- 19000
 set.seed(229)
@@ -79,4 +79,3 @@ vars <- c("anyDMD", "sex", "age", "ses", "cci", "year")
 tab1 <- CreateTableOne(vars = vars, strata = "mortality_outcome", data = simdat, includeNA = T, 
                        test = F, addOverall = T)
 print(tab1, showAllLevels = T)
-
