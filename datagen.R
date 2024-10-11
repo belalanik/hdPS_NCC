@@ -74,8 +74,21 @@ simdat$mortality_outcome <- car::recode(simdat$mortality_outcome, " FALSE = 0; T
 # Save data
 save(simdat, file = "Data/simdata.RData")
 
+# Variable
+# id: Unique identifier
+# follow_up: Follow-up time in years
+# mortality_outcome: Binary outcome
+# age: Age in years
+# sex: Sex
+# ses: Socioeconomic status 
+# cci: Charlson Comorbidity Index
+# year: Calendar year
+# anyDMD: Time-dependent exposure
+# yrs_anyDMD: Exposure time in years
+
 # Table 1
 vars <- c("anyDMD", "sex", "age", "ses", "cci", "year")
 tab1 <- CreateTableOne(vars = vars, strata = "mortality_outcome", data = simdat, includeNA = T, 
                        test = F, addOverall = T)
 print(tab1, showAllLevels = T)
+
