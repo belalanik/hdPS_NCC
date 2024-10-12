@@ -98,7 +98,6 @@ id <- simdat$id
 # Random proxies from difefrnt website
 ## Product identification numbers (PINs) - Gov.bc.ca
 ## https://www.cms.gov/medicare/coordination-benefits-recovery/overview/icd-code-lists
-#proxies <- readxl::read_excel("Data/Proxy.xlsx", sheet = 1)
 proxies <- read.csv("Data/Proxy.csv", header = T, stringsAsFactors = F, fileEncoding="latin1")
 head(proxies)
 
