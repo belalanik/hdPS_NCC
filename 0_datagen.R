@@ -92,3 +92,58 @@ tab1 <- CreateTableOne(vars = vars, strata = "mortality_outcome", data = simdat,
                        test = F, addOverall = T)
 print(tab1, showAllLevels = T)
 
+########################### hdPS variables ###################################
+id <- simdat$id
+
+# Random proxies from difefrnt website
+## Product identification numbers (PINs) - Gov.bc.ca
+## https://www.cms.gov/medicare/coordination-benefits-recovery/overview/icd-code-lists
+#proxies <- readxl::read_excel("Data/Proxy.xlsx", sheet = 1)
+proxies <- read.csv("Data/Proxy.csv", header = T, stringsAsFactors = F, fileEncoding="latin1")
+head(proxies)
+
+# Fake proxies
+set.seed(100)
+n.proxy <- 200000
+
+## 3-digit diagnostic codes
+dat.diag <- data.frame(id = sample(id, size = n.proxy*0.05, replace = T), 
+                       code = sample(proxies$diag, size = n.proxy*0.05, replace = T), 
+                       dim = "diag")
+dat.diag$code <- substr(dat.diag$code, start = 1, stop = 3)
+dat.diag$code[dat.diag$code==""] <- NA
+dat.diag <- na.omit(dat.diag)
+
+## 3-digit procedure codes
+dat.proc <- data.frame(id = sample(id, size = n.proxy*0.05, replace = T), 
+                       code = sample(proxies$proc, size = n.proxy*0.05, replace = T), 
+                       dim = "proc")
+dat.proc$code <- substr(dat.proc$code, start = 1, stop = 3)
+dat.proc$code[dat.proc$code==""] <- NA
+dat.proc <- na.omit(dat.proc)
+
+## 3-digit icd codes
+dat.msp <- data.frame(id = sample(id, size = n.proxy*0.60, replace = T), 
+                      code = sample(proxies$msp, size = n.proxy*0.60, replace = T), 
+                      dim = "msp")
+dat.msp$code <- substr(dat.msp$code, start = 1, stop = 3)
+dat.msp$code[dat.msp$code==""] <- NA
+dat.msp <- na.omit(dat.msp)
+
+## DINPIN
+dat.din <- data.frame(id = sample(id, size = n.proxy*0.30, replace = T), 
+                      code = sample(proxies$din, size = n.proxy*0.30, replace = T), 
+                      dim = "din")
+dat.din$code[dat.din$code==""] <- NA
+dat.din <- na.omit(dat.din)
+
+# Proxy data
+dat.proxy <- rbind(dat.diag, dat.proc, dat.msp, dat.din)
+
+# Drop missing codes 
+dat.proxy <- na.omit(dat.proxy)
+table(dat.proxy$dim)
+
+# Save data
+save(simdat, dat.proxy, file = "Data/simdata.RData")
+
