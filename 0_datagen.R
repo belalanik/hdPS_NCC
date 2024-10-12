@@ -1,19 +1,43 @@
+#################### The following variables are created #######################
+## id: Unique identifier
+
+## Time-to-event outcome:
+### mortality_outcome: Binary mortality status (outcome)
+### follow_up: Time-to-event in years
+
+## Time-dependent exposure
+### anyDMD: Time-dependent DMD exposure
+### yrs_anyDMD: Time-to-exposed in years
+
+## Baseline confounders
+### sex: Sex
+### age: Age in years
+### ses: Socioeconomic status 
+### cci: Charlson Comorbidity Index
+### year: Calendar year
+
+#############################################################################################
+
 library(survival)
 library(tableone)
 rm(list = ls())
 
 ############# Generating a time-to-event outcome with a time-dependent exposure #############
-#The sample size
+# Sample size
 n <- 19000
+
+# Seed
 set.seed(229)
+
+# Confounders
 sex <- rbinom(n, 1, prob = 0.28) 
 age <- round(rnorm(n, mean = 44.5, sd = 13.5)); age[age < 18] <- 18; age[age > 103] <- 103
 ses <- rbinom(n, 1, prob = 0.41)
 cci <- rbinom(n, 1, prob = 0.22)
 year <- rbinom(n, 1, prob = 0.36)
-
 confounders = cbind(sex, age, ses, cci, year)
 
+# Generating time-to-event and time-dependent exposure
 lambda <- 0.03
 alpha_0 <- 0.35
 alpha_1 <- -0.55
@@ -32,31 +56,33 @@ EventT <- ifelse(-log(1 - U) < lambda * exp(LinFix) * S, -log(1 - U)/(lambda * e
                  (-log(1 - U) - lambda * exp(LinFix) * S + lambda * exp(LinFix + beta_t) * S)/
                    (lambda * exp(LinFix + beta_t)))
 CensorT <- runif(n, min = 0, max = 0.25)
+
 # Merge into a data frame
 simdat <- data.frame(id = 1:n, follow_up = pmin(EventT, CensorT), mortality_outcome = EventT < CensorT, 
                    age, sex, ses, cci, year,
                    anyDMD = -log(1 - U) >= lambda * exp(LinFix) * S & CensorT > S)
 simdat$yrs_anyDMD <- pmin(simdat$follow_up, S)
 simdat$anyDMD <- ifelse(simdat$anyDMD == TRUE, 1, 0)
-simdat$anyDMD <- ifelse(simdat$anyDMD == TRUE, 1, 0)
+
+# No exposure time for those unexposed
 simdat$yrs_anyDMD[simdat$anyDMD == 0] <- NA
 head(simdat, 5)
 
-# Exposure
+# Exposure prevalence
 round(prop.table(table(simdat$anyDMD))*100, 2)
 
-# Exposure time
+# Exposure time - making sure similar distribution of the exposure time as observed in the Multiple Sclerosis cohort
 round(summary(simdat$yrs_anyDMD), 3)
 simdat$yrs_anyDMD <- simdat$yrs_anyDMD * 3.3 / mean(simdat$yrs_anyDMD, na.rm = T)
 
-# Outcome
+# Event rate over follow-ups 
 round(prop.table(table(simdat$mortality_outcome))*100, 2)
 
-# Follow-up time
+# Follow-up time  - making sure similar distribution of the follow time as observed in the Multiple Sclerosis cohort
 round(summary(simdat$follow_up), 3)
 simdat$follow_up <- simdat$follow_up * 11.7 / mean(simdat$follow_up, na.rm = T)
 
-# Bivariate
+# Bivariate table
 table(Exposure = simdat$anyDMD, Outcome = simdat$mortality_outcome)
 round(summary(simdat$yrs_anyDMD), 4)
 round(summary(simdat$follow_up), 4)
@@ -74,18 +100,6 @@ simdat$mortality_outcome <- car::recode(simdat$mortality_outcome, " FALSE = 0; T
 # Save data
 save(simdat, file = "Data/simdata.RData")
 
-# Variable
-# id: Unique identifier
-# follow_up: Follow-up time in years
-# mortality_outcome: Binary outcome
-# age: Age in years
-# sex: Sex
-# ses: Socioeconomic status 
-# cci: Charlson Comorbidity Index
-# year: Calendar year
-# anyDMD: Time-dependent exposure
-# yrs_anyDMD: Exposure time in years
-
 # Table 1
 vars <- c("anyDMD", "sex", "age", "ses", "cci", "year")
 tab1 <- CreateTableOne(vars = vars, strata = "mortality_outcome", data = simdat, includeNA = T, 
@@ -95,13 +109,13 @@ print(tab1, showAllLevels = T)
 ########################### hdPS variables ###################################
 id <- simdat$id
 
-# Random proxies from difefrnt website
+# Random proxies from different website
 ## Product identification numbers (PINs) - Gov.bc.ca
 ## https://www.cms.gov/medicare/coordination-benefits-recovery/overview/icd-code-lists
 proxies <- read.csv("Data/Proxy.csv", header = T, stringsAsFactors = F, fileEncoding="latin1")
 head(proxies)
 
-# Fake proxies
+# Creating fake proxies
 set.seed(100)
 n.proxy <- 200000
 
@@ -136,13 +150,12 @@ dat.din <- data.frame(id = sample(id, size = n.proxy*0.30, replace = T),
 dat.din$code[dat.din$code==""] <- NA
 dat.din <- na.omit(dat.din)
 
-# Proxy data
+# Merge all dimensions
 dat.proxy <- rbind(dat.diag, dat.proc, dat.msp, dat.din)
 
-# Drop missing codes 
+# Drop missing proxies 
 dat.proxy <- na.omit(dat.proxy)
 table(dat.proxy$dim)
 
-# Save data
+# Save all data
 save(simdat, dat.proxy, file = "Data/simdata.RData")
-
